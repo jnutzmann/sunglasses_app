@@ -1,0 +1,3 @@
+[submodule "fsf3"]
+	path = fsf3
+	url = git@github.com:jnutzmann/fsf3.git
