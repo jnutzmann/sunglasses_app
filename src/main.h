@@ -30,77 +30,10 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f3_hal/stm32f3xx_hal.h"
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
-
-/* USER CODE END Includes */
-
-/* Exported types ------------------------------------------------------------*/
-/* USER CODE BEGIN ET */
-
-/* USER CODE END ET */
-
-/* Exported constants --------------------------------------------------------*/
-/* USER CODE BEGIN EC */
-
-/* USER CODE END EC */
-
-/* Exported macro ------------------------------------------------------------*/
-/* USER CODE BEGIN EM */
-
-/* USER CODE END EM */
+#include "pin_definitions.h"
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
-/* Exported functions prototypes ---------------------------------------------*/
-void Error_Handler(void);
-
-/* USER CODE BEGIN EFP */
-
-/* USER CODE END EFP */
-
-/* Private defines -----------------------------------------------------------*/
-#define LED_RED_Pin GPIO_PIN_13
-#define LED_RED_GPIO_Port GPIOC
-#define SOIL0_MOIST_Pin GPIO_PIN_0
-#define SOIL0_MOIST_GPIO_Port GPIOA
-#define SOIL0_TEMP_Pin GPIO_PIN_1
-#define SOIL0_TEMP_GPIO_Port GPIOA
-#define SOIL1_MOIST_Pin GPIO_PIN_2
-#define SOIL1_MOIST_GPIO_Port GPIOA
-#define SOIL1_TEMP_Pin GPIO_PIN_3
-#define SOIL1_TEMP_GPIO_Port GPIOA
-#define LED_BLUE_Pin GPIO_PIN_4
-#define LED_BLUE_GPIO_Port GPIOA
-#define VIN_ADC_Pin GPIO_PIN_0
-#define VIN_ADC_GPIO_Port GPIOB
-#define LED0_SS_Pin GPIO_PIN_1
-#define LED0_SS_GPIO_Port GPIOB
-#define LED1_SS_Pin GPIO_PIN_2
-#define LED1_SS_GPIO_Port GPIOB
-#define MAT0_EN_Pin GPIO_PIN_12
-#define MAT0_EN_GPIO_Port GPIOB
-#define MAT1_EN_Pin GPIO_PIN_13
-#define MAT1_EN_GPIO_Port GPIOB
-#define SOIL0_EN_Pin GPIO_PIN_14
-#define SOIL0_EN_GPIO_Port GPIOB
-#define SOIL1_EN_Pin GPIO_PIN_15
-#define SOIL1_EN_GPIO_Port GPIOB
-#define LED0_PWM_A_Pin GPIO_PIN_8
-#define LED0_PWM_A_GPIO_Port GPIOA
-#define LED0_PWM_B_Pin GPIO_PIN_9
-#define LED0_PWM_B_GPIO_Port GPIOA
-#define LED1_PWM_A_Pin GPIO_PIN_10
-#define LED1_PWM_A_GPIO_Port GPIOA
-#define LED1_PWM_B_Pin GPIO_PIN_11
-#define LED1_PWM_B_GPIO_Port GPIOA
-#define MOIST0_EXCITE_Pin GPIO_PIN_5
-#define MOIST0_EXCITE_GPIO_Port GPIOB
-#define MOIST1_EXCITE_Pin GPIO_PIN_9
-#define MOIST1_EXCITE_GPIO_Port GPIOB
-/* USER CODE BEGIN Private defines */
-
-/* USER CODE END Private defines */
 
 #ifdef __cplusplus
 }
