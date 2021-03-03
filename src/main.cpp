@@ -3,6 +3,9 @@
 #include "error.h"
 
 #include "hw/stm32f3xx/gpio.h"
+#include "hw/stm32f3xx/spi.h"
+
+#include "hw/tps92518.h"
 
 #include "pin_definitions.h"
 
@@ -10,6 +13,8 @@
 
 #include "freertos/thread.hpp"
 #include "freertos/ticks.hpp"
+
+using namespace hw::stm32f3xx;
 
 
 class DefaultThread : public freertos::Thread {
@@ -24,77 +29,134 @@ class DefaultThread : public freertos::Thread {
 
     virtual void Run() {
 
-      hw::stm32f3xx::GpioPin red_led(LED_RED_GPIO_Port,
-                                     LED_RED_Pin,
-                                     hw::stm32f3xx::GpioPin::Mode::kOutput,
-                                     hw::stm32f3xx::GpioPin::OutputType::kPushPull,
-                                     hw::stm32f3xx::GpioPin::OutputSpeed::kLow,
-                                     hw::stm32f3xx::GpioPin::Pull::kNoPull);
-      red_led.ConfigureOutput();
+      // LED Pins
+      GpioPin red_led(LED_RED_GPIO_Port,
+                      LED_RED_Pin,
+                      GpioPin::Mode::kOutput,
+                      GpioPin::OutputType::kPushPull,
+                      GpioPin::OutputSpeed::kLow,
+                      GpioPin::Pull::kNoPull,
+                      GpioPin::State::kReset);
 
+      GpioPin blue_led(LED_BLUE_GPIO_Port,
+                       LED_BLUE_Pin,
+                       GpioPin::Mode::kOutput,
+                       GpioPin::OutputType::kPushPull,
+                       GpioPin::OutputSpeed::kLow,
+                       GpioPin::Pull::kNoPull,
+                       GpioPin::State::kReset);
+
+      // Slave Select Pins
+      GpioPin led0_ss(LED0_SS_GPIO_Port,
+                      LED0_SS_Pin,
+                      GpioPin::Mode::kOutput,
+                      GpioPin::OutputType::kPushPull,
+                      GpioPin::OutputSpeed::kHigh,
+                      GpioPin::Pull::kNoPull,
+                      GpioPin::State::kSet);
+
+      GpioPin led1_ss(LED1_SS_GPIO_Port,
+                      LED1_SS_Pin,
+                      GpioPin::Mode::kOutput,
+                      GpioPin::OutputType::kPushPull,
+                      GpioPin::OutputSpeed::kHigh,
+                      GpioPin::Pull::kNoPull,
+                      GpioPin::State::kSet);
+
+      // PWM Pins (Enables)
+      GpioPin led0_pwm_a(LED0_PWM_A_GPIO_Port,
+                         LED0_PWM_A_Pin,
+                         GpioPin::Mode::kOutput,
+                         GpioPin::OutputType::kPushPull,
+                         GpioPin::OutputSpeed::kHigh,
+                         GpioPin::Pull::kNoPull,
+                         GpioPin::State::kReset);
+
+      GpioPin led0_pwm_b(LED0_PWM_B_GPIO_Port,
+                         LED0_PWM_B_Pin,
+                         GpioPin::Mode::kOutput,
+                         GpioPin::OutputType::kPushPull,
+                         GpioPin::OutputSpeed::kHigh,
+                         GpioPin::Pull::kNoPull,
+                         GpioPin::State::kReset);
+
+      GpioPin led1_pwm_a(LED1_PWM_A_GPIO_Port,
+                         LED1_PWM_A_Pin,
+                         GpioPin::Mode::kOutput,
+                         GpioPin::OutputType::kPushPull,
+                         GpioPin::OutputSpeed::kHigh,
+                         GpioPin::Pull::kNoPull,
+                         GpioPin::State::kReset);
+
+      GpioPin led1_pwm_b(LED1_PWM_B_GPIO_Port,
+                         LED1_PWM_B_Pin,
+                         GpioPin::Mode::kOutput,
+                         GpioPin::OutputType::kPushPull,
+                         GpioPin::OutputSpeed::kHigh,
+                         GpioPin::Pull::kNoPull,
+                         GpioPin::State::kReset);
+
+      SpiMaster spi1(16,
+                     GPIOA, GPIO_PIN_6,
+                     GPIOA, GPIO_PIN_7,
+                     GPIOA, GPIO_PIN_5);
+
+      hw::Tps92518 led0(spi1, led0_ss);
+      hw::Tps92518 led1(spi1, led1_ss);
+
+      hw::tps92618ReadRsp rsp0[17];
+      hw::tps92618ReadRsp rsp1[17];
+
+      hw::tps92618WriteRsp cmdresp;
+
+      led0.Write(hw::Tps92518::Register::RESET, 0x0C3, &cmdresp);
+      led1.Write(hw::Tps92518::Register::RESET, 0x0C3, &cmdresp);
+
+      for (int i=0; i <= 0x10; i++) {
+        led0.Read((hw::Tps92518::Register)i, &rsp0[i]);
+        led1.Read((hw::Tps92518::Register)i, &rsp1[i]);
+      }
+
+      led0.Write(hw::Tps92518::Register::LED1_TOFF_DAC, 42, &cmdresp);
+      led0.Write(hw::Tps92518::Register::LED2_TOFF_DAC, 42, &cmdresp);
+      led1.Write(hw::Tps92518::Register::LED1_TOFF_DAC, 42, &cmdresp);
+      led1.Write(hw::Tps92518::Register::LED2_TOFF_DAC, 42, &cmdresp);
+
+      led0.Write(hw::Tps92518::Register::LED1_PKTH_DAC, 24, &cmdresp);
+      led0.Write(hw::Tps92518::Register::LED2_PKTH_DAC, 24, &cmdresp);
+      led1.Write(hw::Tps92518::Register::LED1_PKTH_DAC, 24, &cmdresp);
+      led1.Write(hw::Tps92518::Register::LED2_PKTH_DAC, 24, &cmdresp);
+
+      led0_pwm_a.Write(GpioPin::State::kSet);
+      led0_pwm_b.Write(GpioPin::State::kSet);
+      led1_pwm_a.Write(GpioPin::State::kSet);
+      led1_pwm_b.Write(GpioPin::State::kSet);
+
+      led0.Write(hw::Tps92518::Register::CONTROL, 0b11, &cmdresp);
+      led1.Write(hw::Tps92518::Register::CONTROL, 0b11, &cmdresp);
+
+      for (int i=0; i <= 0x10; i++) {
+        led0.Read((hw::Tps92518::Register)i, &rsp0[i]);
+        led1.Read((hw::Tps92518::Register)i, &rsp1[i]);
+      }
+
+//      int brightness = 0;
+//      bool increasing = true;
       while (true) {
+
+//        if (increasing) { brightness++; if (brightness == 32) increasing = false; }
+//        else { brightness--; if (brightness == 16) increasing = true; }
+//
+//        led1.Write(hw::Tps92518::Register::LED1_PKTH_DAC, brightness, &cmdresp);
+//
+//        Delay(50);
+
         red_led.Toggle();
         Delay(freertos::Ticks::MsToTicks(500));
+        blue_led.Toggle();
       }
     };
 };
-
-//
-//static void MX_GPIO_Init(void)
-//{
-//  GPIO_InitTypeDef GPIO_InitStruct = {0};
-//
-//  /* GPIO Ports Clock Enable */
-//  __HAL_RCC_GPIOC_CLK_ENABLE();
-//  __HAL_RCC_GPIOF_CLK_ENABLE();
-//  __HAL_RCC_GPIOA_CLK_ENABLE();
-//  __HAL_RCC_GPIOB_CLK_ENABLE();
-//
-//  /*Configure GPIO pin Output Level */
-//  HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
-//
-//  /*Configure GPIO pin Output Level */
-//  HAL_GPIO_WritePin(GPIOA, LED_BLUE_Pin|LED0_PWM_A_Pin|LED0_PWM_B_Pin|LED1_PWM_A_Pin
-//                          |LED1_PWM_B_Pin, GPIO_PIN_RESET);
-//
-//  /*Configure GPIO pin Output Level */
-//  HAL_GPIO_WritePin(GPIOB, LED0_SS_Pin|LED1_SS_Pin, GPIO_PIN_SET);
-//
-//  /*Configure GPIO pin Output Level */
-//  HAL_GPIO_WritePin(GPIOB, MAT0_EN_Pin|MAT1_EN_Pin|SOIL0_EN_Pin|SOIL1_EN_Pin, GPIO_PIN_RESET);
-//
-//  /*Configure GPIO pin : LED_RED_Pin */
-//  GPIO_InitStruct.Pin = LED_RED_Pin;
-//  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-//  GPIO_InitStruct.Pull = GPIO_NOPULL;
-//  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-//  HAL_GPIO_Init(LED_RED_GPIO_Port, &GPIO_InitStruct);
-//
-//  /*Configure GPIO pins : LED_BLUE_Pin LED0_PWM_A_Pin LED0_PWM_B_Pin LED1_PWM_A_Pin
-//                           LED1_PWM_B_Pin */
-//  GPIO_InitStruct.Pin = LED_BLUE_Pin|LED0_PWM_A_Pin|LED0_PWM_B_Pin|LED1_PWM_A_Pin
-//                          |LED1_PWM_B_Pin;
-//  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-//  GPIO_InitStruct.Pull = GPIO_NOPULL;
-//  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-//  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-//
-//  /*Configure GPIO pins : LED0_SS_Pin LED1_SS_Pin */
-//  GPIO_InitStruct.Pin = LED0_SS_Pin|LED1_SS_Pin;
-//  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-//  GPIO_InitStruct.Pull = GPIO_NOPULL;
-//  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-//  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-//
-//  /*Configure GPIO pins : MAT0_EN_Pin MAT1_EN_Pin SOIL0_EN_Pin SOIL1_EN_Pin */
-//  GPIO_InitStruct.Pin = MAT0_EN_Pin|MAT1_EN_Pin|SOIL0_EN_Pin|SOIL1_EN_Pin;
-//  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-//  GPIO_InitStruct.Pull = GPIO_NOPULL;
-//  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-//  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-//
-//}
-
 
 int main(void)
 {
@@ -103,6 +165,12 @@ int main(void)
 
   /* Configure the system clock */
   rcc_init();
+
+  // Enable all the GPIO clocks.
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOF_CLK_ENABLE();
 
   /* Initialize all configured peripherals */
   //MX_GPIO_Init();
@@ -115,19 +183,11 @@ int main(void)
 //  MX_TIM17_Init();
 //  MX_USART3_UART_Init();
 
-  /* Init scheduler */
-  //osKernelInitialize();
+
 
   DefaultThread dThread;
 
   freertos::Thread::StartScheduler();
-
-
-//  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
-
-
-  /* Start scheduler */
-//  osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */

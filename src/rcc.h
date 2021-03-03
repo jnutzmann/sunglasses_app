@@ -11,7 +11,9 @@
 #ifdef __cplusplus
  extern "C" {
 #endif
+
 void rcc_init(void);
+
 #ifdef __cplusplus
  }
 #endif
