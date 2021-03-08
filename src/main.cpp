@@ -13,6 +13,8 @@
 #include "freertos/thread.hpp"
 #include "freertos/ticks.hpp"
 
+#include "hw/stm32f3xx/uart_shell.h"
+
 using namespace hw::stm32f3xx;
 
 
@@ -54,6 +56,10 @@ class DefaultThread : public freertos::Thread {
     };
 };
 
+
+UartShell* shell;
+extern "C" { void USART3_IRQHandler(void) { shell->ServiceInterrupt(); } }
+
 int main(void)
 {
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
@@ -68,6 +74,10 @@ int main(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOF_CLK_ENABLE();
 
+  UartShell dbgShell(3, 115200, GPIOB, GPIO_PIN_10, GPIOB, GPIO_PIN_11);
+
+  shell = &dbgShell;
+
   task::LedControlTask ledControlTask;
   DefaultThread dThread;
 
@@ -78,6 +88,8 @@ int main(void)
   while (1) { }
 
 }
+
+
 
 
 /**
