@@ -99,10 +99,8 @@ int main(void)
 
   freertos::Thread::StartScheduler();
 
-  /* We should never get here as control is now taken by the scheduler */
-  /* Infinite loop */
-  while (1) { }
-
+  // We should never get here as control is now taken by the scheduler
+  while (true) { }
 }
 
 
