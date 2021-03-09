@@ -18,6 +18,10 @@
 using namespace hw::stm32f3xx;
 
 
+
+
+
+
 class DefaultThread : public freertos::Thread {
 
   public:
@@ -57,8 +61,21 @@ class DefaultThread : public freertos::Thread {
 };
 
 
-UartShell* shell;
-extern "C" { void USART3_IRQHandler(void) { shell->ServiceInterrupt(); } }
+
+
+static constexpr UartShell::Config debugShellConfig = {
+    .uartIndex = 3,
+    .baudrate = 115200,
+    .txPort = GPIOB, .txPin = GPIO_PIN_10,
+    .rxPort = GPIOB, .rxPin = GPIO_PIN_11
+};
+
+static UartShell debugShell(debugShellConfig);
+extern "C" { void USART3_IRQHandler(void) { debugShell.ServiceInterrupt(); } }
+
+
+
+
 
 int main(void)
 {
@@ -74,9 +91,8 @@ int main(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOF_CLK_ENABLE();
 
-  UartShell dbgShell(3, 115200, GPIOB, GPIO_PIN_10, GPIOB, GPIO_PIN_11);
 
-  shell = &dbgShell;
+  //shell = &dbgShell;
 
   task::LedControlTask ledControlTask;
   DefaultThread dThread;
