@@ -26,7 +26,7 @@ class DefaultThread : public freertos::Thread {
 
   public:
     DefaultThread(void)
-      : freertos::Thread("dft", 128*1, osPriorityNormal) {
+      : freertos::Thread("dft", 128*3, osPriorityNormal) {
       Start();
     };
 
@@ -67,12 +67,15 @@ static constexpr UartShell::Config debugShellConfig = {
     .uartIndex = 3,
     .baudrate = 115200,
     .txPort = GPIOB, .txPin = GPIO_PIN_10,
-    .rxPort = GPIOB, .rxPin = GPIO_PIN_11
+    .rxPort = GPIOB, .rxPin = GPIO_PIN_11,
+    .txQueueLength = 32, .rxQueueLength = 3
 };
 
 static UartShell debugShell(debugShellConfig);
-extern "C" { void USART3_IRQHandler(void) { debugShell.ServiceInterrupt(); } }
-
+extern "C" {
+  void USART3_IRQHandler(void) { debugShell.ServiceInterrupt(); }
+  int _write(int file, char *ptr, int len) { return debugShell.Write(file, ptr, len); }
+}
 
 
 
