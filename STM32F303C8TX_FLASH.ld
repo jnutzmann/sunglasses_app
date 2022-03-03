@@ -142,6 +142,24 @@ SECTIONS
 
   /* Uninitialized data section into "RAM" Ram type memory */
   . = ALIGN(4);
+  
+  /* CCM-RAM section 
+  * 
+  * IMPORTANT NOTE! 
+  * If variables placed in this section must be zero initialized,
+  * the startup code needs to be modified to initialize this section.  
+  */
+  .ccmram :
+  {
+    . = ALIGN(4);
+    _sccmram = .;       /* create a global symbol at ccmram start */
+    *(.ccmram)
+    *(.ccmram*)
+    
+    . = ALIGN(4);
+    _eccmram = .;       /* create a global symbol at ccmram end */
+  } >CCMRAM
+  
   .bss :
   {
     /* This is used by the startup in order to initialize the .bss section */

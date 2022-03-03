@@ -15,6 +15,9 @@
 
 #include "hw/stm32f3xx/uart_shell.h"
 
+#include "shell/cli.h"
+#include "hw/stm32f3xx/rtc.h"
+
 using namespace hw::stm32f3xx;
 
 
@@ -26,7 +29,7 @@ class DefaultThread : public freertos::Thread {
 
   public:
     DefaultThread(void)
-      : freertos::Thread("dft", 128*3, osPriorityNormal) {
+      : freertos::Thread("BLINK", 128*1, osPriorityNormal) {
       Start();
     };
 
@@ -68,17 +71,14 @@ static constexpr UartShell::Config debugShellConfig = {
     .baudrate = 115200,
     .txPort = GPIOB, .txPin = GPIO_PIN_10,
     .rxPort = GPIOB, .rxPin = GPIO_PIN_11,
-    .txQueueLength = 32, .rxQueueLength = 3
+    .txQueueLength = 64, .rxQueueLength = 3
 };
 
-static UartShell debugShell(debugShellConfig);
+static UartShell debugShell __attribute__((section(".ccmram")))(debugShellConfig);
 extern "C" {
   void USART3_IRQHandler(void) { debugShell.ServiceInterrupt(); }
   int _write(int file, char *ptr, int len) { return debugShell.Write(file, ptr, len); }
 }
-
-
-
 
 int main(void)
 {
@@ -94,11 +94,17 @@ int main(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOF_CLK_ENABLE();
 
+  static Rtc rtc __attribute__((section(".ccmram")));
+  static RtcGetCommand rtcGetCommand __attribute__((section(".ccmram")))(rtc);
+  static RtcSetCommand rtcSetCommand __attribute__((section(".ccmram")))(rtc);
+  shell::commandInterperterInstance.Register(&rtcGetCommand);
+  shell::commandInterperterInstance.Register(&rtcSetCommand);
 
-  //shell = &dbgShell;
 
-  task::LedControlTask ledControlTask;
-  DefaultThread dThread;
+  static task::LedControlTask ledControlTask __attribute__((section(".ccmram")))(rtc);
+  static DefaultThread dThread __attribute__((section(".ccmram")));
+
+
 
   freertos::Thread::StartScheduler();
 

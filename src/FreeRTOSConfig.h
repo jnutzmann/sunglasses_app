@@ -60,8 +60,8 @@
 #define configTICK_RATE_HZ                       ((TickType_t)1000)
 #define configMAX_PRIORITIES                     ( 56 )
 #define configMINIMAL_STACK_SIZE                 ((uint16_t)128)
-#define configTOTAL_HEAP_SIZE                    ((size_t)7000)
-#define configMAX_TASK_NAME_LEN                  ( 5 )
+#define configTOTAL_HEAP_SIZE                    ((size_t)8000)
+#define configMAX_TASK_NAME_LEN                  ( 10 )
 #define configUSE_TRACE_FACILITY                 1
 #define configUSE_16_BIT_TICKS                   0
 #define configUSE_MUTEXES                        1
@@ -69,6 +69,7 @@
 #define configUSE_RECURSIVE_MUTEXES              1
 #define configUSE_COUNTING_SEMAPHORES            1
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION  0
+#define configUSE_STATS_FORMATTING_FUNCTIONS     1
 
 /* Co-routine definitions. */
 #define configUSE_CO_ROUTINES                    0
@@ -95,9 +96,6 @@ to exclude the API function. */
 #define INCLUDE_xQueueGetMutexHolder        1
 #define INCLUDE_uxTaskGetStackHighWaterMark 1
 #define INCLUDE_eTaskGetState               1
-
-/* FreeRTOS Plus Configuration */
-#define configCOMMAND_INT_MAX_OUTPUT_SIZE 128
 
 /*
  * The CMSIS-RTOS V2 FreeRTOS wrapper is dependent on the heap implementation used
